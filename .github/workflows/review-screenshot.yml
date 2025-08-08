@@ -1,0 +1,41 @@
+name: Review Screenshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      review_json:
+        description: "JSON mit Bewertungsdaten"
+        required: true
+      return_hook:
+        description: "Zapier Catch Hook URL"
+        required: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: |
+          npm ci || npm i
+
+      - name: Render screenshot
+        env:
+          REVIEW_JSON: ${{ github.event.inputs.review_json }}
+        run: |
+          node render.js "$REVIEW_JSON"
+
+      - name: Send back to Zapier
+        env:
+          RETURN_HOOK: ${{ github.event.inputs.return_hook }}
+        run: |
+          # Datei: out/review.png
+          curl -s -X POST "$RETURN_HOOK" \
+            -H "Content-Type: application/json" \
+            --data-binary @out/payload.json
