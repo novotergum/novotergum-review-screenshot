@@ -25,7 +25,6 @@ jobs:
         run: |
           npm ci || npm i
 
-      # ➜ WICHTIG: Browser + System-Deps installieren
       - name: Install Playwright Chromium
         run: |
           npx playwright install --with-deps chromium
@@ -34,9 +33,8 @@ jobs:
         env:
           REVIEW_JSON: ${{ github.event.inputs.review_json }}
         run: |
-          node render.js "$REVIEW_JSON"
+          node render.cjs "$REVIEW_JSON"
 
-      # Falls render.js fehlschlägt, trotzdem etwas an Zapier zurückschicken
       - name: Ensure payload exists (fallback)
         run: |
           if [ ! -f out/payload.json ]; then
