@@ -1,11 +1,12 @@
 {
-  "name": "review-screenshot",
+  "name": "google-reviews-screenshot",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "render": "node render.js"
+    "login:help": "echo \"Login local: npx playwright open --save-storage=auth/google.json https://search.google.com/local/reviews?placeid=PLACEID\"",
+    "shot": "node review_screenshot.cjs"
   },
   "dependencies": {
-    "playwright": "^1.45.0"
+    "playwright": "^1.46.0"
   }
 }
