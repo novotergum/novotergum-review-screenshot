@@ -1,0 +1,46 @@
+name: Review Screenshot (signed session)
+
+on:
+  workflow_dispatch:
+    inputs:
+      review_url:
+        description: "Google Reviews URL (placeid)"
+        required: true
+      return_hook:
+        description: "Zapier Catch Hook URL (optional)"
+        required: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm ci || npm i
+          npx playwright install --with-deps chromium
+
+      - name: Restore auth storage from secret
+        run: |
+          mkdir -p auth
+          echo "${{ secrets.GOOGLE_AUTH_JSON }}" > auth/google.json
+
+      - name: Render screenshot (Newest first)
+        env:
+          REVIEW_URL: ${{ github.event.inputs.review_url }}
+          RETURN_HOOK: ${{ github.event.inputs.return_hook }}
+          STORAGE_STATE: auth/google.json
+        run: |
+          node review_screenshot.cjs
+
+      - name: Upload artifact (PNG)
+        uses: actions/upload-artifact@v4
+        with:
+          name: review
+          path: out/review.png
