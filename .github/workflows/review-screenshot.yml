@@ -25,17 +25,29 @@ jobs:
         run: |
           npm ci || npm i
 
+      # ➜ WICHTIG: Browser + System-Deps installieren
+      - name: Install Playwright Chromium
+        run: |
+          npx playwright install --with-deps chromium
+
       - name: Render screenshot
         env:
           REVIEW_JSON: ${{ github.event.inputs.review_json }}
         run: |
           node render.js "$REVIEW_JSON"
 
+      # Falls render.js fehlschlägt, trotzdem etwas an Zapier zurückschicken
+      - name: Ensure payload exists (fallback)
+        run: |
+          if [ ! -f out/payload.json ]; then
+            mkdir -p out
+            echo '{"error":"no-payload","message":"render failed or payload missing"}' > out/payload.json
+          fi
+
       - name: Send back to Zapier
         env:
           RETURN_HOOK: ${{ github.event.inputs.return_hook }}
         run: |
-          # Datei: out/review.png
           curl -s -X POST "$RETURN_HOOK" \
             -H "Content-Type: application/json" \
             --data-binary @out/payload.json
